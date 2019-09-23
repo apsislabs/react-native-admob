@@ -1,16 +1,24 @@
+import {
+  arrayOf,
+  bool,
+  func,
+  instanceOf,
+  number,
+  object,
+  oneOf,
+  shape,
+  string,
+} from 'prop-types';
 import React, { Component } from 'react';
 import {
+  findNodeHandle,
   requireNativeComponent,
   UIManager,
-  findNodeHandle,
   ViewPropTypes,
 } from 'react-native';
-import { string, func, arrayOf } from 'prop-types';
-
 import { createErrorFromErrorData } from './utils';
 
 class PublisherBanner extends Component {
-
   constructor() {
     super();
     this.handleSizeChange = this.handleSizeChange.bind(this);
@@ -28,8 +36,8 @@ class PublisherBanner extends Component {
   loadBanner() {
     UIManager.dispatchViewManagerCommand(
       findNodeHandle(this._bannerView),
-      UIManager.RNDFPBannerView.Commands.loadBanner,
-      null,
+      UIManager.getViewManagerConfig('RNDFPBannerView').Commands.loadBanner,
+      null
     );
   }
 
@@ -50,7 +58,9 @@ class PublisherBanner extends Component {
 
   handleAdFailedToLoad(event) {
     if (this.props.onAdFailedToLoad) {
-      this.props.onAdFailedToLoad(createErrorFromErrorData(event.nativeEvent.error));
+      this.props.onAdFailedToLoad(
+        createErrorFromErrorData(event.nativeEvent.error)
+      );
     }
   }
 
@@ -62,7 +72,7 @@ class PublisherBanner extends Component {
         onSizeChange={this.handleSizeChange}
         onAdFailedToLoad={this.handleAdFailedToLoad}
         onAppEvent={this.handleAppEvent}
-        ref={el => (this._bannerView = el)}
+        ref={(el) => (this._bannerView = el)}
       />
     );
   }
@@ -114,8 +124,50 @@ PublisherBanner.propTypes = {
   onAdClosed: func,
   onAdLeftApplication: func,
   onAppEvent: func,
+
+  targeting: shape({
+    /**
+     * Arbitrary object of custom targeting information.
+     */
+    customTargeting: object,
+
+    /**
+     * Array of exclusion labels.
+     */
+    categoryExclusions: arrayOf(string),
+
+    /**
+     * Array of keyword strings.
+     */
+    keywords: arrayOf(string),
+
+    /**
+     * Applications that monetize content matching a webpage's content may pass
+     * a content URL for keyword targeting.
+     */
+    contentURL: string,
+
+    /**
+     * You can set a publisher provided identifier (PPID) for use in frequency
+     * capping, audience segmentation and targeting, sequential ad rotation, and
+     * other audience-based ad delivery controls across devices.
+     */
+    publisherProvidedID: string,
+
+    /**
+     * The user’s current location may be used to deliver more relevant ads.
+     */
+    location: shape({
+      latitude: number,
+      longitude: number,
+      accuracy: number,
+    }),
+  }),
 };
 
-const RNDFPBannerView = requireNativeComponent('RNDFPBannerView', PublisherBanner);
+const RNDFPBannerView = requireNativeComponent(
+  'RNDFPBannerView',
+  PublisherBanner
+);
 
 export default PublisherBanner;
